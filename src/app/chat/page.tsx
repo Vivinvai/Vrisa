@@ -117,6 +117,7 @@ export default function ChatPage() {
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [profileCardUser, setProfileCardUser] = useState<User | null>(null);
   const [theme, setTheme] = useState<'dark' | 'blue' | 'light'>('blue');
+  const [showMobileChat, setShowMobileChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -645,7 +646,26 @@ export default function ChatPage() {
     const handleClick = () => setContextMenu(null);
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
-  }, []);
+  }, [contextMenu]);
+
+  // Mobile: Handle contact/group selection
+  const handleMobileSelect = (user: User | null, group: GroupChat | null) => {
+    if (user) {
+      setSelectedUser(user);
+      setSelectedGroup(null);
+      setViewMode('dm');
+    } else if (group) {
+      setSelectedGroup(group);
+      setSelectedUser(null);
+      setViewMode('group');
+    }
+    setShowMobileChat(true);
+  };
+
+  // Mobile: Close chat and return to contacts
+  const closeMobileChat = () => {
+    setShowMobileChat(false);
+  };
 
   const sendConnectionRequest = async (userId: string) => {
     try {
@@ -775,7 +795,7 @@ export default function ChatPage() {
   const connectedUsers = getConnectedUsers();
 
   return (
-    <div className={`flex h-screen ${currentTheme.bg}`}>
+    <div className={`flex h-screen ${currentTheme.bg} overflow-hidden`}>
       {showCreateGroup && (
         <CreateGroupModal
           onClose={() => setShowCreateGroup(false)}
@@ -995,8 +1015,8 @@ export default function ChatPage() {
         </div>
       )}
       
-      {/* Sidebar */}
-      <div className={`flex w-96 flex-col border-r ${currentTheme.border} ${currentTheme.sidebar} backdrop-blur-xl shadow-2xl`}>
+      {/* Sidebar - Hidden on mobile when chat is open */}
+      <div className={`${showMobileChat ? 'hidden md:flex' : 'flex'} w-full md:w-96 flex-col border-r ${currentTheme.border} ${currentTheme.sidebar} backdrop-blur-xl shadow-2xl`}>
         {/* Profile Section */}
         <div className={`border-b ${currentTheme.border} ${currentTheme.card} p-5`}>
           <div className="flex items-center gap-3 mb-4">
@@ -1292,6 +1312,7 @@ export default function ChatPage() {
                     setSelectedUser(user);
                     setSelectedGroup(null);
                     setViewMode('dm');
+                    setShowMobileChat(true);
                   }}
                   className={`group mb-2 w-full rounded-xl p-3 text-left transition-all ${
                     selectedUser?.id === user.id
@@ -1341,6 +1362,7 @@ export default function ChatPage() {
                     setSelectedGroup(group);
                     setSelectedUser(null);
                     setViewMode('group');
+                    setShowMobileChat(true);
                   }}
                   className={`group mb-2 w-full rounded-xl p-3 text-left transition-all ${
                     selectedGroup?.id === group.id
@@ -1378,11 +1400,11 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex flex-1 flex-col">
+      {/* Chat Area - Full screen on mobile */}
+      <div className={`${!showMobileChat && '!hidden md:!flex'} flex flex-1 flex-col`}>
         {!selectedUser && !selectedGroup ? (
           <div className={`flex flex-1 items-center justify-center ${currentTheme.bg}`}>
-            <div className="text-center">
+            <div className="text-center px-4">
               <div className="mb-6 text-7xl animate-bounce">💬</div>
               <h2 className={`text-2xl font-bold ${currentTheme.text} mb-2`}>Welcome to Vrisa</h2>
               <p className={`${currentTheme.textSecondary} mb-4`}>Secure end-to-end encrypted messaging</p>
@@ -1396,14 +1418,24 @@ export default function ChatPage() {
           </div>
         ) : selectedUser ? (
           <>
-            {/* DM Chat Header */}
+            {/* DM Chat Header with Mobile Back Button */}
             <div className={`flex items-center border-b ${currentTheme.border} ${currentTheme.card} backdrop-blur-xl p-4 shadow-lg`}>
+              {/* Mobile Back Button */}
+              <button
+                onClick={closeMobileChat}
+                className="md:hidden mr-3 p-2 rounded-lg hover:bg-slate-800/50 transition-colors"
+              >
+                <svg className={`w-5 h-5 ${currentTheme.text}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
               <button 
                 onClick={() => {
                   setProfileCardUser(selectedUser);
                   setShowProfileCard(true);
                 }}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 font-bold text-white shadow-lg shadow-cyan-500/30 overflow-hidden ring-2 ring-cyan-500/30 hover:ring-4 hover:ring-cyan-500/50 transition-all cursor-pointer"
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 font-bold text-white shadow-lg shadow-cyan-500/30 overflow-hidden ring-2 ring-cyan-500/30 hover:ring-4 hover:ring-cyan-500/50 transition-all cursor-pointer"
               >
                 {selectedUser.profilePicture ? (
                   <img
@@ -1559,8 +1591,16 @@ export default function ChatPage() {
                             </div>
                           </div>
                           {isMine && (
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-xs font-semibold text-white shadow-lg shadow-cyan-500/50">
-                              {session?.user && getUserInitials(session.user)}
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-xs font-semibold text-white shadow-lg shadow-cyan-500/50 overflow-hidden">
+                              {currentUser?.profilePicture ? (
+                                <img
+                                  src={currentUser.profilePicture}
+                                  alt={currentUser.name || "You"}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                session?.user && getUserInitials(session.user)
+                              )}
                             </div>
                           )}
                         </div>
@@ -1657,9 +1697,19 @@ export default function ChatPage() {
           </>
         ) : selectedGroup ? (
           <>
-            {/* Group Chat Header */}
+            {/* Group Chat Header with Mobile Back Button */}
             <div className={`flex items-center border-b ${currentTheme.border} ${currentTheme.card} backdrop-blur-xl p-4 shadow-lg`}>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-600 font-bold text-white shadow-lg shadow-purple-500/30 overflow-hidden ring-2 ring-purple-500/30">
+              {/* Mobile Back Button */}
+              <button
+                onClick={closeMobileChat}
+                className="md:hidden mr-3 p-2 rounded-lg hover:bg-slate-800/50 transition-colors"
+              >
+                <svg className={`w-5 h-5 ${currentTheme.text}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-600 font-bold text-white shadow-lg shadow-purple-500/30 overflow-hidden ring-2 ring-purple-500/30">
                 {selectedGroup.groupPicture ? (
                   <img
                     src={selectedGroup.groupPicture}
@@ -1807,6 +1857,20 @@ export default function ChatPage() {
                               </span>
                             </div>
                           </div>
+                          
+                          {isMine && (
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-600 font-semibold text-white text-xs overflow-hidden flex-shrink-0 shadow-lg shadow-purple-500/50">
+                              {currentUser?.profilePicture ? (
+                                <img
+                                  src={currentUser.profilePicture}
+                                  alt={currentUser.name || "You"}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                currentUser?.name?.[0]?.toUpperCase() || session?.user?.name?.[0]?.toUpperCase() || "?"
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );

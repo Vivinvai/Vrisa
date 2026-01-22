@@ -27,6 +27,8 @@ model User {
   publicKey     String    @db.Text
   encryptedPrivateKey String @db.Text
   emailVerified Boolean   @default(false)
+  resetToken    String?   @db.VarChar(10)
+  resetTokenExpiry DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sentMessages  Message[] @relation("SentMessages")
