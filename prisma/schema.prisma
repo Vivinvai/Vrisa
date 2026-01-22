@@ -1,0 +1,143 @@
+// Prisma schema for PostgreSQL-backed chat storage
+// Run `npm run prisma:generate` after editing this file.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  uniqueId      String    @unique @db.VarChar(50)
+  email         String    @unique @db.VarChar(255)
+  password      String    @db.VarChar(255)
+  name          String?   @db.VarChar(120)
+  bio           String?   @db.VarChar(500)
+  profilePicture String?  @db.Text
+  dateOfBirth   DateTime?
+  gender        String?   @db.VarChar(20)
+  hobby         String?   @db.VarChar(200)
+  interests     String?   @db.Text
+  isOnline      Boolean   @default(false)
+  lastSeen      DateTime  @default(now())
+  publicKey     String    @db.Text
+  encryptedPrivateKey String @db.Text
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sentMessages  Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  sentConnections Connection[] @relation("ConnectionRequester")
+  receivedConnections Connection[] @relation("ConnectionAddressee")
+  otpCodes      OtpCode[]
+  groupMemberships GroupMember[]
+  groupMessages GroupMessage[]
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  userId    String
+  code      String   @db.VarChar(255)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  ciphertext  String   @db.Text
+  iv          String   @db.VarChar(96)
+  messageType String   @default("text") @db.VarChar(20) // text, file, image, video
+  fileName    String?  @db.VarChar(255)
+  fileSize    Int?     // Size in bytes
+  fileUrl     String?  @db.Text // Encrypted file data (base64) or URL
+  deleted     Boolean  @default(false) // For unsend feature
+  deletedAt   DateTime?
+  expiresAt   DateTime? // For message retention (null = never expires)
+  createdAt   DateTime @default(now())
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+  @@index([deleted])
+}
+
+model Connection {
+  id          String   @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      String   @default("pending") @db.VarChar(20) // pending, accepted, rejected
+  sharedKey   String?  @db.Text // AES key for this conversation, encrypted for each user
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  requester   User     @relation("ConnectionRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee   User     @relation("ConnectionAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId])
+  @@index([addresseeId])
+  @@index([status])
+}
+
+model GroupChat {
+  id          String   @id @default(cuid())
+  name        String   @db.VarChar(200)
+  description String?  @db.VarChar(500)
+  groupPicture String? @db.Text
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  members     GroupMember[]
+  messages    GroupMessage[]
+
+  @@index([createdById])
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  role      String   @default("member") @db.VarChar(20) // admin, member
+  joinedAt  DateTime @default(now())
+  group     GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+}
+
+model GroupMessage {
+  id          String   @id @default(cuid())
+  groupId     String
+  senderId    String
+  ciphertext  String   @db.Text
+  iv          String   @db.VarChar(96)
+  messageType String   @default("text") @db.VarChar(20)
+  fileName    String?  @db.VarChar(255)
+  fileSize    Int?
+  fileUrl     String?  @db.Text
+  deleted     Boolean  @default(false)
+  deletedAt   DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  group       GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([deleted])
+}
