@@ -1,4 +1,9 @@
-## Vrisa — End-to-End Encrypted Chat
+# Vrisa — End-to-End Encrypted Chat
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/Vrisa)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-16.1.4-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)](https://www.typescriptlang.org/)
 
 Modern real-time encrypted messaging platform with email authentication. Messages are encrypted client-side with AES-256-GCM; encryption keys are automatically generated and secured with your password.
 
@@ -106,6 +111,95 @@ prisma/
 - `npm start` — serve production build
 - `npm run prisma:generate` — regenerate Prisma client
 - `npm run prisma:push` — sync schema to database
+
+---
+
+## 🚀 Deploy to Production (Free)
+
+### Quick Deploy to Vercel
+
+1. **Push to GitHub**:
+   ```bash
+   git remote add origin https://github.com/YOUR_USERNAME/Vrisa.git
+   git push -u origin main
+   ```
+
+2. **Deploy via Vercel**:
+   - Visit [vercel.com/new](https://vercel.com/new)
+   - Import your GitHub repository
+   - Add environment variables (see below)
+   - Click Deploy
+
+3. **Free Database Options**:
+   - [Neon](https://neon.tech) - 10GB free PostgreSQL
+   - [Supabase](https://supabase.com) - 500MB free PostgreSQL
+   - [Railway](https://railway.app) - $5 free credit/month
+
+4. **Environment Variables** (add in Vercel dashboard):
+   ```env
+   DATABASE_URL=your_postgres_connection_string
+   NEXTAUTH_SECRET=generate_with_openssl_rand_base64_32
+   NEXTAUTH_URL=https://your-app.vercel.app
+   EMAIL_HOST=smtp.gmail.com
+   EMAIL_PORT=587
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-gmail-app-password
+   EMAIL_FROM=Vrisa <your-email@gmail.com>
+   ```
+
+**Detailed Instructions**: See [GITHUB_SETUP.md](./GITHUB_SETUP.md) and [DEPLOYMENT.md](./DEPLOYMENT.md)
+
+---
+
+## 📦 Project Structure
+
+```
+Vrisa/
+├── src/
+│   ├── app/
+│   │   ├── api/          # API routes
+│   │   ├── chat/         # Main chat interface
+│   │   ├── profile/      # User profile & themes
+│   │   ├── login/        # Authentication
+│   │   └── register/     # User registration
+│   ├── components/       # React components
+│   └── lib/              # Utilities & crypto
+├── prisma/
+│   └── schema.prisma     # Database schema
+├── public/               # Static assets
+└── .env.example          # Environment template
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please open an issue or submit a PR.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/), [Prisma](https://www.prisma.io/), and [NextAuth.js](https://next-auth.js.org/)
+- Encryption powered by Web Crypto API
+- UI styled with [Tailwind CSS](https://tailwindcss.com/)
+
+---
+
+**Made with ❤️ for privacy-conscious communication**
+
 
 ### 🚨 Important
 - Change `NEXTAUTH_SECRET` in production (use `openssl rand -base64 32`)
