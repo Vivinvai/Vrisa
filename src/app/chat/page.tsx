@@ -602,19 +602,11 @@ export default function ChatPage() {
       let encryptedContent;
       if (viewMode === 'dm' && selectedUser) {
         const key = await deriveConversationKey(currentUser.id, selectedUser.id);
-        const iv = crypto.getRandomValues(new Uint8Array(12));
-        encryptedContent = {
-          ciphertext: await encryptWithAes(editDraft, key, iv),
-          iv: Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join('')
-        };
+        encryptedContent = await encryptWithAes(key, editDraft);
       } else if (viewMode === 'group' && selectedGroup) {
         const memberIds = selectedGroup.members?.map(m => m.user.id) || [];
         const key = await deriveGroupConversationKey(selectedGroup.id, memberIds);
-        const iv = crypto.getRandomValues(new Uint8Array(12));
-        encryptedContent = {
-          ciphertext: await encryptWithAes(editDraft, key, iv),
-          iv: Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join('')
-        };
+        encryptedContent = await encryptWithAes(key, editDraft);
       }
 
       const res = await fetch(endpoint, {
@@ -1055,7 +1047,7 @@ export default function ChatPage() {
               className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                 theme === 'light'
                   ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
-                  : `${theme === 'light' ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'}`
+                  : theme === 'blue' ? 'bg-blue-900/30 text-blue-400 hover:bg-blue-800/40' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
               }`}
             >
               ☀️ Light

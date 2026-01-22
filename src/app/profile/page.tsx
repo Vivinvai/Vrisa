@@ -225,7 +225,7 @@ export default function ProfilePage() {
               className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                 theme === 'light'
                   ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
-                  : `${theme === 'light' ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'}`
+                  : theme === 'blue' ? 'bg-blue-900/30 text-blue-400 hover:bg-blue-800/40' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
               }`}
             >
               ☀️ Light

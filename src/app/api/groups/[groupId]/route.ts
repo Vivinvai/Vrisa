@@ -5,14 +5,14 @@ import { NextResponse } from "next/server";
 // Get group details
 export async function GET(
   request: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { groupId } = params;
+  const { groupId } = await params;
 
   // Check if user is a member
   const membership = await prisma.groupMember.findFirst({
@@ -51,14 +51,14 @@ export async function GET(
 // Update group details
 export async function PATCH(
   request: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { groupId } = params;
+  const { groupId } = await params;
 
   // Check if user is admin
   const membership = await prisma.groupMember.findFirst({
@@ -109,14 +109,14 @@ export async function PATCH(
 // Delete group (admin only)
 export async function DELETE(
   request: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { groupId } = params;
+  const { groupId } = await params;
 
   // Check if user is admin
   const membership = await prisma.groupMember.findFirst({

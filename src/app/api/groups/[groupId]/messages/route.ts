@@ -7,14 +7,14 @@ const MESSAGE_LIMIT = 100;
 // Get group messages
 export async function GET(
   request: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { groupId } = params;
+  const { groupId } = await params;
 
   // Verify user is a member
   const membership = await prisma.groupMember.findFirst({
@@ -54,14 +54,14 @@ export async function GET(
 // Send group message
 export async function POST(
   request: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { groupId } = params;
+  const { groupId } = await params;
 
   // Verify user is a member
   const membership = await prisma.groupMember.findFirst({

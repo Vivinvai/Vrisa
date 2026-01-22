@@ -5,14 +5,14 @@ import { NextResponse } from "next/server";
 // Add member to group (admin only)
 export async function POST(
   request: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { groupId } = params;
+  const { groupId } = await params;
 
   // Check if user is admin
   const adminCheck = await prisma.groupMember.findFirst({
@@ -71,14 +71,14 @@ export async function POST(
 // Remove member from group (admin only)
 export async function DELETE(
   request: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { groupId } = params;
+  const { groupId } = await params;
 
   // Check if user is admin
   const adminCheck = await prisma.groupMember.findFirst({
